@@ -1,7 +1,9 @@
 use std::{env, fmt, fs, time};
 
 pub use arrayvec::{self, ArrayString, ArrayVec};
+pub use bitvec::{self, array::BitArray, slice::BitSlice, vec::BitVec};
 pub use fxhash::{self, FxHashMap, FxHashSet};
+pub use regex::{self, Regex};
 pub use vector_map::{self, set::VecSet, VecMap};
 
 pub fn run_parts<OutputOne: fmt::Display, OutputTwo: fmt::Display>(
