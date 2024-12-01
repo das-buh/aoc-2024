@@ -1,6 +1,8 @@
 use std::{env, fmt, fs, time};
 
-pub use fxhash::{FxHashMap, FxHashSet};
+pub use arrayvec::{self, ArrayString, ArrayVec};
+pub use fxhash::{self, FxHashMap, FxHashSet};
+pub use vector_map::{self, set::VecSet, VecMap};
 
 pub fn run_parts<OutputOne: fmt::Display, OutputTwo: fmt::Display>(
     one: impl FnOnce(&str) -> OutputOne,
