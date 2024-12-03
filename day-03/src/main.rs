@@ -7,8 +7,8 @@ fn main() {
 fn one(input: &str) -> u64 {
     let re = Regex::new(r"mul\((\d{1,3}),(\d{1,3})\)").unwrap();
     re.captures_iter(input)
-        .map(|c| c.extract())
-        .map(|(_, [x, y])| x.parse::<u64>().unwrap() * y.parse::<u64>().unwrap())
+        .map(|c| c.extract().1.map(|s| s.parse::<u64>().unwrap()))
+        .map(|[x, y]| x * y)
         .sum()
 }
 
