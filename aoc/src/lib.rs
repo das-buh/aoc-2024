@@ -19,10 +19,16 @@ pub fn run_parts<OutputOne: fmt::Display, OutputTwo: fmt::Display>(
         println!("Elapsed:\t{dur:?}");
     }
 
-    let path = env::args().nth(1).expect("no path specified");
+    let mut args = env::args();
+    let path = args.nth(1).expect("no path specified");
     let input = fs::read_to_string(path).expect("file not found");
 
-    run_part("one", one, &input);
-    println!();
-    run_part("two", two, &input);
+    if let Some(path_two) = args.next() {
+        let input_two = fs::read_to_string(path_two).expect("file not found");
+        run_part("one", one, &input);
+        run_part("two", two, &input_two);
+    } else {
+        run_part("one", one, &input);
+        run_part("two", two, &input);
+    }
 }
