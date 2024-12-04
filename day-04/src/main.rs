@@ -74,11 +74,10 @@ fn two(input: &str) -> u64 {
             .map(|line| line.next())
             .collect::<Option<ArrayVec<_, 3>>>()
         {
-            let square = square.as_slice();
             if let [[b'M', _, b'M'], [_, b'A', _], [b'S', _, b'S']]
             | [[b'M', _, b'S'], [_, b'A', _], [b'M', _, b'S']]
             | [[b'S', _, b'S'], [_, b'A', _], [b'M', _, b'M']]
-            | [[b'S', _, b'M'], [_, b'A', _], [b'S', _, b'M']] = square
+            | [[b'S', _, b'M'], [_, b'A', _], [b'S', _, b'M']] = square.as_slice()
             {
                 count += 1;
             }
