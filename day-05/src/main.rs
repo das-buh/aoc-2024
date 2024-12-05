@@ -78,11 +78,8 @@ fn pair_in_order(page: u8, after: u8, ordering: &Ordering) -> bool {
 }
 
 fn update_in_order(pages: &[u8], ordering: &Ordering) -> bool {
-    for window in pages.windows(2) {
+    pages.windows(2).all(|window| {
         let [page, after] = window else { panic!() };
-        if !pair_in_order(*page, *after, ordering) {
-            return false;
-        }
-    }
-    true
+        pair_in_order(*page, *after, ordering)
+    })
 }
