@@ -1,4 +1,5 @@
 use aoc::{ArrayVec, FxHashMap};
+use std::cmp::Ordering;
 
 fn main() {
     aoc::run_parts(one, two);
@@ -22,35 +23,30 @@ fn two(input: &str) -> u64 {
     let mut sum = 0;
 
     for mut update in updates {
-        if update_in_order(&update, &ordering) {
-            continue;
+        let mut in_order = true;
+
+        update.sort_by(|a, b| {
+            if pair_in_order(*a, *b, &ordering) {
+                Ordering::Less
+            } else {
+                in_order = false;
+                Ordering::Greater
+            }
+        });
+
+        if !in_order {
+            sum += update[update.len() / 2] as u64;
         }
-
-        for i in 0..update.len() {
-            let correct = (i..update.len())
-                .find(|page| {
-                    let page = update[*page];
-                    update[i..]
-                        .iter()
-                        .copied()
-                        .all(|other| !pair_in_order(other, page, &ordering))
-                })
-                .unwrap();
-
-            update.swap(i, correct);
-        }
-
-        sum += update[update.len() / 2] as u64;
     }
 
     sum
 }
 
-type Ordering = FxHashMap<u8, ArrayVec<u8, 24>>;
+type PageOrdering = FxHashMap<u8, ArrayVec<u8, 24>>;
 
-fn parse_input<'a>(input: &'a str) -> (Ordering, impl Iterator<Item = ArrayVec<u8, 24>> + 'a) {
+fn parse_input<'a>(input: &'a str) -> (PageOrdering, impl Iterator<Item = ArrayVec<u8, 24>> + 'a) {
     let mut lines = input.lines();
-    let mut ordering = Ordering::default();
+    let mut ordering = PageOrdering::default();
 
     while let Some(rule) = lines.next() {
         if rule.is_empty() {
@@ -73,11 +69,11 @@ fn parse_input<'a>(input: &'a str) -> (Ordering, impl Iterator<Item = ArrayVec<u
     (ordering, updates)
 }
 
-fn pair_in_order(page: u8, after: u8, ordering: &Ordering) -> bool {
+fn pair_in_order(page: u8, after: u8, ordering: &PageOrdering) -> bool {
     ordering.get(&page).is_some_and(|a| a.contains(&after))
 }
 
-fn update_in_order(pages: &[u8], ordering: &Ordering) -> bool {
+fn update_in_order(pages: &[u8], ordering: &PageOrdering) -> bool {
     pages.windows(2).all(|window| {
         let [page, after] = window else { panic!() };
         pair_in_order(*page, *after, ordering)
