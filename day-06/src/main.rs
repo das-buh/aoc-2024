@@ -4,20 +4,10 @@ fn main() {
 
 fn one(input: &str) -> u64 {
     let mut map = parse_input(input);
-    let (mut pos, mut dir) = (map.start_pos, map.start_dir);
+    let mut traversal = map.new_traversal();
 
-    loop {
+    while let Some((pos, _)) = map.traverse_next(&mut traversal) {
         *map.get_mut(pos) |= VISITED;
-
-        let Some(new) = map.step(pos, dir) else {
-            break;
-        };
-
-        if map.get(new) & PRE_OBSTR != 0 {
-            dir = rot_right(dir);
-        } else {
-            pos = new;
-        }
     }
 
     map.tiles
@@ -28,26 +18,14 @@ fn one(input: &str) -> u64 {
 
 fn two(input: &str) -> u64 {
     let mut map = parse_input(input);
-    let (mut pos, mut dir) = (map.start_pos, map.start_dir);
-    let mut changes = Vec::new();
+    let mut traversal = map.new_traversal();
 
-    loop {
-        if map.get_and(pos, flag(dir)) {
-            break;
-        }
-        *map.get_mut(pos) |= flag(dir);
-
+    while let Some((pos, _)) = map.traverse_next(&mut traversal) {
         *map.get_mut(pos) |= TEMP_OBSTR;
-        if verify_loop(&mut map, &mut changes) {
+        if verify_loop(&mut map) {
             *map.get_mut(pos) |= ADD_OBSTR;
         }
         *map.get_mut(pos) &= !TEMP_OBSTR;
-
-        match map.step(pos, dir) {
-            Some(new) if !map.get_and_any(new, PRE_OBSTR) => pos = new,
-            Some(_) => dir = rot_right(dir),
-            None => break,
-        }
     }
 
     map.tiles
@@ -56,27 +34,30 @@ fn two(input: &str) -> u64 {
         .count() as u64
 }
 
-fn verify_loop(map: &mut Map, changes: &mut Vec<(Pos, Tile)>) -> bool {
-    let (mut pos, mut dir) = (map.start_pos, map.start_dir);
+fn verify_loop(map: &mut Map) -> bool {
+    let mut count = 0;
 
+    let mut traversal = map.new_traversal();
     let is_loop = loop {
-        if map.get_and(pos, verify_flag(dir)) {
+        let Some((pos, dir)) = map.traverse_next(&mut traversal) else {
+            break false;
+        };
+
+        if map.get_and(pos, flag(dir)) {
             break true;
         }
-        if !map.get_and(pos, verify_flag(dir)) {
-            *map.get_mut(pos) |= verify_flag(dir);
-            changes.push((pos, verify_flag(dir)));
-        }
+        *map.get_mut(pos) |= flag(dir);
 
-        match map.step(pos, dir) {
-            Some(new) if !map.get_and_any(new, PRE_OBSTR | TEMP_OBSTR) => pos = new,
-            Some(_) => dir = rot_right(dir),
-            None => break false,
-        }
+        count += 1;
     };
 
-    for (pos, flag) in changes.drain(..) {
-        *map.get_mut(pos) &= !flag;
+    let mut traversal = map.new_traversal();
+    for _ in 0..count {
+        let Some((pos, _)) = map.traverse_next(&mut traversal) else {
+            break;
+        };
+
+        *map.get_mut(pos) &= !VISIT_FLAGS;
     }
 
     is_loop
@@ -110,11 +91,12 @@ fn parse_input(input: &str) -> Map {
     map
 }
 
-type Tile = u16;
+type Tile = u8;
 
 const PRE_OBSTR: Tile = 1 << 0;
 const ADD_OBSTR: Tile = 1 << 1;
 const TEMP_OBSTR: Tile = 1 << 2;
+
 const VISITED: Tile = 1 << 3;
 
 const VISIT_DOWN: Tile = 1 << 4;
@@ -122,10 +104,7 @@ const VISIT_RIGHT: Tile = 1 << 5;
 const VISIT_UP: Tile = 1 << 6;
 const VISIT_LEFT: Tile = 1 << 7;
 
-const VERIFY_DOWN: Tile = 1 << 8;
-const VERIFY_RIGHT: Tile = 1 << 9;
-const VERIFY_UP: Tile = 1 << 10;
-const VERIFY_LEFT: Tile = 1 << 11;
+const VISIT_FLAGS: Tile = VISIT_DOWN | VISIT_RIGHT | VISIT_UP | VISIT_LEFT;
 
 #[derive(Clone)]
 struct Map {
@@ -137,6 +116,8 @@ struct Map {
 
 type Pos = (usize, usize);
 type Dir = (isize, isize);
+
+struct Traversal(Option<(Pos, Dir)>);
 
 impl Map {
     fn get(&self, pos: Pos) -> Tile {
@@ -162,6 +143,24 @@ impl Map {
         );
         (pos.0 < self.dim.0 && pos.1 < self.dim.1).then_some(pos)
     }
+
+    fn new_traversal(&self) -> Traversal {
+        Traversal(Some((self.start_pos, self.start_dir)))
+    }
+
+    fn traverse_next(&self, traversal: &mut Traversal) -> Option<(Pos, Dir)> {
+        let next = traversal.0;
+
+        if let Some((pos, dir)) = next {
+            traversal.0 = match self.step(pos, dir) {
+                Some(pos) if !self.get_and_any(pos, PRE_OBSTR | TEMP_OBSTR) => Some((pos, dir)),
+                Some(_) => Some((pos, rot_right(dir))),
+                None => None,
+            };
+        }
+
+        next
+    }
 }
 
 fn rot_right(dir: Dir) -> Dir {
@@ -174,16 +173,6 @@ fn flag(dir: Dir) -> Tile {
         (0, 1) => VISIT_RIGHT,
         (-1, 0) => VISIT_UP,
         (0, -1) => VISIT_LEFT,
-        _ => panic!(),
-    }
-}
-
-fn verify_flag(dir: Dir) -> Tile {
-    match dir {
-        (1, 0) => VERIFY_DOWN,
-        (0, 1) => VERIFY_RIGHT,
-        (-1, 0) => VERIFY_UP,
-        (0, -1) => VERIFY_LEFT,
         _ => panic!(),
     }
 }
