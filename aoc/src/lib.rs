@@ -5,6 +5,7 @@ pub use bitvec::{self, array::BitArray, slice::BitSlice, vec::BitVec};
 pub use fxhash::{self, FxHashMap, FxHashSet};
 pub use rayon::{self, prelude::*};
 pub use regex::{self, Regex};
+pub use slab::{self, Slab};
 pub use smallvec::{self, SmallVec};
 pub use vector_map::{self, set::VecSet, VecMap};
 
