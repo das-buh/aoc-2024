@@ -9,6 +9,9 @@ pub use slab::{self, Slab};
 pub use smallvec::{self, SmallVec};
 pub use vector_map::{self, set::VecSet, VecMap};
 
+pub mod grid;
+pub use grid::*;
+
 pub fn run_parts<OutputOne: fmt::Display, OutputTwo: fmt::Display>(
     one: impl FnOnce(&str) -> OutputOne,
     two: impl FnOnce(&str) -> OutputTwo,
