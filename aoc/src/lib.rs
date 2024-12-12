@@ -1,4 +1,4 @@
-use std::{env, fmt, fs, time};
+use std::{env, fmt::Display, fs, time};
 
 pub use arrayvec::{self, ArrayString, ArrayVec};
 pub use bitvec::{self, array::BitArray, slice::BitSlice, vec::BitVec};
@@ -14,10 +14,10 @@ pub use grid::*;
 
 pub fn run_parts<OneOut, TwoOut>(one: impl FnOnce(&str) -> OneOut, two: impl FnOnce(&str) -> TwoOut)
 where
-    OneOut: fmt::Display,
-    TwoOut: fmt::Display,
+    OneOut: Display,
+    TwoOut: Display,
 {
-    fn run_part<Output: fmt::Display>(part: &str, func: impl FnOnce(&str) -> Output, input: &str) {
+    fn run_part<Out: Display>(part: &str, func: impl FnOnce(&str) -> Out, input: &str) {
         let now = time::Instant::now();
         let out = func(input);
         let dur = now.elapsed();
@@ -38,15 +38,4 @@ where
         run_part("one", one, &input);
         run_part("two", two, &input);
     }
-}
-
-pub fn run_parts_preproc<In, OneOut, TwoOut>(
-    one: impl FnOnce(In) -> OneOut,
-    two: impl FnOnce(In) -> TwoOut,
-    preproc: impl Fn(&str) -> In,
-) where
-    OneOut: fmt::Display,
-    TwoOut: fmt::Display,
-{
-    run_parts(|input| one(preproc(input)), |input| two(preproc(input)));
 }

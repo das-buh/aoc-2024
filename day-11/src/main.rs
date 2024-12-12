@@ -1,27 +1,27 @@
 use aoc::FxHashMap;
 
 fn main() {
-    aoc::run_parts_preproc(one, two, |input| {
-        input
-            .split_whitespace()
-            .map(|num| num.parse::<u64>().unwrap())
-            .collect()
-    });
+    aoc::run_parts(one, two);
 }
 
-fn one(stones: Vec<u64>) -> u64 {
-    let mut cache = FxHashMap::default();
-    stones
-        .into_iter()
-        .map(|stone| split_stone(stone, 25, &mut cache))
-        .sum()
+fn one(input: &str) -> u64 {
+    split_all_stones(parse_input(input), 25)
 }
 
-fn two(stones: Vec<u64>) -> u64 {
+fn two(input: &str) -> u64 {
+    split_all_stones(parse_input(input), 75)
+}
+
+fn parse_input<'a>(input: &'a str) -> impl Iterator<Item = u64> + use<'a> {
+    input
+        .split_whitespace()
+        .map(|num| num.parse::<u64>().unwrap())
+}
+
+fn split_all_stones(stones: impl Iterator<Item = u64>, blinks: u64) -> u64 {
     let mut cache = FxHashMap::default();
     stones
-        .into_iter()
-        .map(|stone| split_stone(stone, 75, &mut cache))
+        .map(|stone| split_stone(stone, blinks, &mut cache))
         .sum()
 }
 
