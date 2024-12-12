@@ -23,6 +23,10 @@ impl<T> Grid<T> {
         grid
     }
 
+    pub fn from_str(str: &str, map_tile: fn(char) -> T) -> Self {
+        Self::from_iter(str.lines().map(|line| line.chars().map(map_tile)))
+    }
+
     pub fn tiles(&self) -> &[T] {
         &self.tiles
     }
@@ -86,5 +90,36 @@ impl<T> Index<(usize, usize)> for Grid<T> {
 impl<T> IndexMut<(usize, usize)> for Grid<T> {
     fn index_mut(&mut self, index: (usize, usize)) -> &mut Self::Output {
         self.get_mut(index).unwrap()
+    }
+}
+
+pub const CARDINAL_DIRS: [(isize, isize); 4] = [(-1, 0), (0, 1), (1, 0), (0, -1)];
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Direction {
+    UP = 0b0001,
+    RIGHT = 0b0010,
+    DOWN = 0b0100,
+    LEFT = 0b1000,
+}
+
+impl Direction {
+    pub fn to_components(self) -> (isize, isize) {
+        match self {
+            Self::UP => (-1, 0),
+            Self::RIGHT => (0, 1),
+            Self::DOWN => (1, 0),
+            Self::LEFT => (0, -1),
+        }
+    }
+
+    pub fn from_components(components: (isize, isize)) -> Self {
+        match components {
+            (-1, 0) => Self::UP,
+            (0, 1) => Self::RIGHT,
+            (1, 0) => Self::DOWN,
+            (0, -1) => Self::LEFT,
+            _ => panic!("bad direction components"),
+        }
     }
 }
