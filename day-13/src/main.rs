@@ -58,9 +58,7 @@ fn find_cost(ax: i64, ay: i64, bx: i64, by: i64, px: i64, py: i64) -> Option<i64
     }
 }
 
-type Claw = (i64, i64, i64, i64, i64, i64);
-
-fn parse_input(input: &str) -> Vec<Claw> {
+fn parse_input(input: &str) -> Vec<(i64, i64, i64, i64, i64, i64)> {
     let re = Regex::new(
         r"Button A: X\+(\d+), Y\+(\d+)\nButton B: X\+(\d+), Y\+(\d+)\nPrize: X=(\d+), Y=(\d+)",
     )
