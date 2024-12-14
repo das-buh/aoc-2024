@@ -1,4 +1,7 @@
-use std::ops::{Index, IndexMut};
+use std::{
+    iter,
+    ops::{Index, IndexMut},
+};
 
 pub struct Grid<T> {
     tiles: Vec<T>,
@@ -6,6 +9,16 @@ pub struct Grid<T> {
 }
 
 impl<T> Grid<T> {
+    pub fn new_cloned(tile: T, dim: (usize, usize)) -> Self
+    where
+        T: Clone,
+    {
+        Grid {
+            tiles: Vec::from_iter(iter::repeat_n(tile, dim.0 * dim.1)),
+            dim,
+        }
+    }
+
     pub fn from_iter<Row: Iterator<Item = T>>(tiles: impl Iterator<Item = Row>) -> Self {
         let mut grid = Grid {
             tiles: Vec::new(),
@@ -76,6 +89,10 @@ impl<T> Grid<T> {
             pos.1.checked_add_signed(translation.1)?,
         );
         self.in_bounds(pos).then_some(pos)
+    }
+
+    pub fn lines(&self) -> impl Iterator<Item = &[T]> {
+        self.tiles.chunks_exact(self.dim.1)
     }
 }
 
