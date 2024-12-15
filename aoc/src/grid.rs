@@ -40,6 +40,10 @@ impl<T> Grid<T> {
         Self::from_iter(str.lines().map(|line| line.chars().map(map_tile)))
     }
 
+    pub fn builder() -> GridBuilder<T> {
+        GridBuilder::new()
+    }
+
     pub fn tiles(&self) -> &[T] {
         &self.tiles
     }
@@ -137,6 +141,48 @@ impl Direction {
             (1, 0) => Self::DOWN,
             (0, -1) => Self::LEFT,
             _ => panic!("bad direction components"),
+        }
+    }
+}
+
+pub struct GridBuilder<T> {
+    tiles: Vec<T>,
+    dim: Option<(usize, usize)>,
+}
+
+impl<T> GridBuilder<T> {
+    pub fn new() -> Self {
+        Self {
+            tiles: Vec::new(),
+            dim: None,
+        }
+    }
+
+    pub fn pos(&self) -> (usize, usize) {
+        let dim = match self.dim {
+            Some(dim) => dim,
+            None => (0, usize::MAX),
+        };
+        (dim.0, self.tiles.len() % dim.1)
+    }
+
+    pub fn tile(&mut self, tile: T) {
+        self.tiles.push(tile);
+    }
+
+    pub fn finish_line(&mut self) {
+        if let Some(dim) = &mut self.dim {
+            dim.0 += 1;
+            assert_eq!(self.tiles.len(), dim.0 * dim.1);
+        } else {
+            self.dim = Some((1, self.tiles.len()));
+        }
+    }
+
+    pub fn finish_grid(self) -> Grid<T> {
+        Grid {
+            tiles: self.tiles,
+            dim: self.dim.unwrap(),
         }
     }
 }
