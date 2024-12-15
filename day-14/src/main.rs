@@ -76,7 +76,9 @@ fn two(input: &str) -> &'static str {
     "those who are jolly"
 }
 
-fn parse_input(input: &str) -> ((i64, i64), Vec<(i64, i64, i64, i64)>) {
+type Robot = (i64, i64, i64, i64);
+
+fn parse_input(input: &str) -> ((i64, i64), Vec<Robot>) {
     let re = Regex::new(r"dim=(\d+),(\d+)").unwrap(); // not part of aoc input; included manually
 
     let (_, [dim_x, dim_y]) = re.captures(input).unwrap().extract();

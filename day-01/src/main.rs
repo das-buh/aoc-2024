@@ -20,7 +20,7 @@ fn one(input: &str) -> u64 {
     right.sort();
 
     left.into_iter()
-        .zip(right.into_iter())
+        .zip(right)
         .map(|(left, right)| left.abs_diff(right))
         .sum::<u64>()
 }

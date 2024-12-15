@@ -19,23 +19,6 @@ impl<T> Grid<T> {
         }
     }
 
-    pub fn from_iter<Row: Iterator<Item = T>>(tiles: impl Iterator<Item = Row>) -> Self {
-        let mut grid = Grid {
-            tiles: Vec::new(),
-            dim: (0, 0),
-        };
-
-        for row in tiles {
-            for tile in row {
-                grid.tiles.push(tile);
-            }
-            grid.dim.1 += 1;
-        }
-
-        grid.dim.0 = grid.tiles.len() / grid.dim.1;
-        grid
-    }
-
     pub fn from_str(str: &str, map_tile: fn(char) -> T) -> Self {
         Self::from_iter(str.lines().map(|line| line.chars().map(map_tile)))
     }
@@ -114,6 +97,25 @@ impl<T> IndexMut<(usize, usize)> for Grid<T> {
     }
 }
 
+impl<T, A: IntoIterator<Item = T>> FromIterator<A> for Grid<T> {
+    fn from_iter<I: IntoIterator<Item = A>>(iter: I) -> Self {
+        let mut grid = Grid {
+            tiles: Vec::new(),
+            dim: (0, 0),
+        };
+
+        for line in iter {
+            for tile in line {
+                grid.tiles.push(tile);
+            }
+            grid.dim.1 += 1;
+        }
+
+        grid.dim.0 = grid.tiles.len() / grid.dim.1;
+        grid
+    }
+}
+
 pub const CARDINAL_DIRS: [(isize, isize); 4] = [(-1, 0), (0, 1), (1, 0), (0, -1)];
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -145,6 +147,7 @@ impl Direction {
     }
 }
 
+#[derive(Default)]
 pub struct GridBuilder<T> {
     tiles: Vec<T>,
     dim: Option<(usize, usize)>,

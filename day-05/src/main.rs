@@ -44,11 +44,11 @@ fn two(input: &str) -> u64 {
 
 type PageOrdering = FxHashMap<u8, ArrayVec<u8, 24>>;
 
-fn parse_input<'a>(input: &'a str) -> (PageOrdering, impl Iterator<Item = ArrayVec<u8, 24>> + 'a) {
+fn parse_input(input: &str) -> (PageOrdering, impl Iterator<Item = ArrayVec<u8, 24>> + '_) {
     let mut lines = input.lines();
     let mut ordering = PageOrdering::default();
 
-    while let Some(rule) = lines.next() {
+    for rule in lines.by_ref() {
         if rule.is_empty() {
             break;
         }

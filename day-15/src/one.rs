@@ -23,7 +23,9 @@ enum Tile {
     Empty,
 }
 
-fn parse_input(input: &str) -> ((usize, usize), Grid<Tile>, Vec<(isize, isize)>) {
+type Moves = Vec<(isize, isize)>;
+
+fn parse_input(input: &str) -> ((usize, usize), Grid<Tile>, Moves) {
     let mut lines = input.lines();
 
     let mut start = None;

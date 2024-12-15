@@ -7,18 +7,14 @@ fn main() {
 fn one(input: &str) -> u64 {
     let map = parse_input(input);
 
-    hike(
-        &map,
-        || Vec::new(),
-        |pos, seen| {
-            if seen.contains(&pos) {
-                0
-            } else {
-                seen.push(pos);
-                1
-            }
-        },
-    )
+    hike(&map, Vec::new, |pos, seen| {
+        if seen.contains(&pos) {
+            0
+        } else {
+            seen.push(pos);
+            1
+        }
+    })
 }
 
 fn two(input: &str) -> u64 {
@@ -44,7 +40,7 @@ fn hike<S: Clone>(
     for (pos, height) in map.iter() {
         if *height == 0 {
             let mut state = init_state();
-            result += recurse(pos, &map, &mut state, visit_top);
+            result += recurse(pos, map, &mut state, visit_top);
         }
     }
 

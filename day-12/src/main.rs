@@ -121,10 +121,11 @@ fn find_region(
             };
             let i = garden.translate(pos, (dir.0, 0)).unwrap();
             let j = garden.translate(pos, (0, dir.1)).unwrap();
-            if garden[i].plant != plant && garden[j].plant != plant {
-                if garden[diag].seen_by_neighbor == Some((region, 0)) {
-                    corners -= 2;
-                }
+            if garden[i].plant != plant
+                && garden[j].plant != plant
+                && garden[diag].seen_by_neighbor == Some((region, 0))
+            {
+                corners -= 2;
             }
         }
     }

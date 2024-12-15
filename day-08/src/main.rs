@@ -67,7 +67,7 @@ fn gcd(mut a: i64, mut b: i64) -> i64 {
     while b != 0 {
         (a, b) = (b, a % b);
     }
-    return a;
+    a
 }
 
 fn in_bounds((ai, aj): (i64, i64), (mi, mj): (i64, i64)) -> bool {

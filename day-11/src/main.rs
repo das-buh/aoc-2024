@@ -12,7 +12,7 @@ fn two(input: &str) -> u64 {
     split_all_stones(parse_input(input), 75)
 }
 
-fn parse_input<'a>(input: &'a str) -> impl Iterator<Item = u64> + use<'a> {
+fn parse_input(input: &str) -> impl Iterator<Item = u64> + use<'_> {
     input
         .split_whitespace()
         .map(|num| num.parse::<u64>().unwrap())
