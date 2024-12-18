@@ -1,5 +1,8 @@
-use aoc::{Grid, Slab};
-use std::{cmp::Ordering, collections::BinaryHeap};
+use aoc::{Grid, CARDINAL_DIRS};
+use std::{
+    cmp::{Ordering, Reverse},
+    collections::BinaryHeap,
+};
 
 fn main() {
     aoc::run_parts(one, two);
@@ -7,18 +10,15 @@ fn main() {
 
 fn one(input: &str) -> u64 {
     let (start, end, mut maze) = parse_input(input);
-    let mut queue = BinaryHeap::from([Reindeer {
+    let mut queue = BinaryHeap::from([Reverse(Reindeer {
         pos: start,
         dir: (0, 1),
         score: 0,
-        id: 0,
-    }]);
+    })]);
     maze[start].kind = Kind::Seen;
 
     loop {
-        let Reindeer {
-            pos, dir, score, ..
-        } = queue.pop().unwrap();
+        let Reindeer { pos, dir, score } = queue.pop().unwrap().0;
 
         if pos == end {
             break score;
@@ -28,12 +28,8 @@ fn one(input: &str) -> u64 {
             let pos = maze.translate(pos, dir).unwrap();
 
             if maze[pos].kind == Kind::Empty {
-                queue.push(Reindeer {
-                    pos,
-                    dir,
-                    score: score + cost,
-                    id: 0,
-                });
+                let score = score + cost;
+                queue.push(Reverse(Reindeer { pos, dir, score }));
                 maze[pos].kind = Kind::Seen;
             }
         }
@@ -42,40 +38,27 @@ fn one(input: &str) -> u64 {
 
 fn two(input: &str) -> u64 {
     let (start, end, mut maze) = parse_input(input);
-    let mut prevs = Slab::new();
-    let mut queue = BinaryHeap::from([Reindeer {
+    let mut queue = BinaryHeap::from([Reverse(Reindeer {
         pos: start,
         dir: (0, 1),
         score: 0,
-        id: prevs.insert((start, (0, 1), usize::MAX)),
-    }]);
+    })]);
 
     let mut best = u64::MAX;
-    let mut count = 0;
 
-    while let Some(Reindeer {
-        pos,
-        dir,
-        score,
-        id,
-    }) = queue.pop()
-    {
+    while let Some(Reverse(Reindeer { pos, dir, score })) = queue.pop() {
         if score > best {
             break;
         }
 
+        let dir_i = dir_to_i(dir);
+        if score > maze[pos].best[dir_i] {
+            continue;
+        }
+        maze[pos].best[dir_i] = score;
+
         if pos == end {
             best = best.min(score);
-
-            let mut curr = id;
-            while let Some((pos, _, prev)) = prevs.get(curr) {
-                if maze[*pos].kind == Kind::Empty {
-                    maze[*pos].kind = Kind::Seen;
-                    count += 1;
-                }
-                curr = *prev;
-            }
-
             continue;
         }
 
@@ -85,13 +68,91 @@ fn two(input: &str) -> u64 {
             let score = score + cost;
 
             if maze[pos].kind != Kind::Wall && score <= maze[pos].best[dir_i] {
-                queue.push(Reindeer {
-                    pos,
-                    dir,
-                    score,
-                    id: prevs.insert((pos, dir, id)),
-                });
+                if maze[pos].prev[(dir_i + 2) % 4] && score < 30_000 {
+                    dbg!(
+                        pos,
+                        dir_i,
+                        score,
+                        maze[pos].best[dir_i],
+                        maze[pos].best[(dir_i + 2) % 4]
+                    );
+                }
+                if maze[pos].prev[(dir_i + 2) % 4]
+                    && score > maze[pos].best[(dir_i + 2) % 4]
+                    && score < maze[pos].best[(dir_i + 2) % 4] + 1000
+                {
+                    continue;
+                }
+
+                queue.push(Reverse(Reindeer { pos, dir, score }));
+                // queue.push(Reverse(Reindeer {
+                //     pos,
+                //     dir: (-dir.1, dir.0),
+                //     score: score + 1000,
+                // }));
+                // queue.push(Reverse(Reindeer {
+                //     pos,
+                //     dir: (dir.1, -dir.0),
+                //     score: score + 1000,
+                // }));
+                // queue.push(Reverse(Reindeer {
+                //     pos,
+                //     dir: (-dir.0, -dir.1),
+                //     score: score + 2000,
+                // }));
                 maze[pos].best[dir_i] = score;
+                maze[pos].best[(dir_i + 1) % 4] = maze[pos].best[(dir_i + 1) % 4].min(score + 1000);
+                maze[pos].best[(dir_i + 2) % 4] = maze[pos].best[(dir_i + 2) % 4].min(score + 2000);
+                maze[pos].best[(dir_i + 3) % 4] = maze[pos].best[(dir_i + 3) % 4].min(score + 1000);
+                maze[pos].prev[dir_i] = true;
+            }
+        }
+    }
+
+    maze[end].kind = Kind::Seen;
+    let count = count_best(end, start, &mut maze);
+
+    for (pos, tile) in maze.iter() {
+        match tile.kind {
+            Kind::Wall => print!("."),
+            Kind::Empty => print!(" "),
+            Kind::Seen => print!("O"),
+            // _ => print!("{}", tile.prev.iter().filter(|s| **s).count()),
+        }
+        if pos.1 + 1 == maze.dim().1 {
+            println!()
+        }
+    }
+
+    for (pos, tile) in maze.iter() {
+        match tile.kind {
+            Kind::Wall => print!(" "),
+            // Kind::Empty => print!(" "),
+            // Kind::Seen => print!("O"),
+            _ => print!("{}", tile.prev.iter().filter(|s| **s).count()),
+        }
+        if pos.1 + 1 == maze.dim().1 {
+            println!()
+        }
+    }
+
+    dbg!(best);
+    count + 1
+}
+
+fn count_best(pos: (usize, usize), start: (usize, usize), maze: &mut Grid<Tile>) -> u64 {
+    if pos == start {
+        return 0;
+    }
+
+    let mut count = 0;
+
+    for dir in CARDINAL_DIRS {
+        if maze[pos].prev[dir_to_i(dir)] {
+            let pos = maze.translate(pos, (-dir.0, -dir.1)).unwrap();
+            if maze[pos].kind == Kind::Empty {
+                maze[pos].kind = Kind::Seen;
+                count += count_best(pos, start, maze) + 1;
             }
         }
     }
@@ -102,6 +163,17 @@ fn two(input: &str) -> u64 {
 struct Tile {
     kind: Kind,
     best: [u64; 4],
+    prev: [bool; 4],
+}
+
+impl Default for Tile {
+    fn default() -> Self {
+        Self {
+            kind: Kind::Empty,
+            best: [u64::MAX; 4],
+            prev: [false; 4],
+        }
+    }
 }
 
 #[derive(Clone, Copy, PartialEq)]
@@ -116,7 +188,6 @@ struct Reindeer {
     pos: (usize, usize),
     dir: (isize, isize),
     score: u64,
-    id: usize,
 }
 
 impl PartialEq for Reindeer {
@@ -127,9 +198,7 @@ impl PartialEq for Reindeer {
 
 impl PartialOrd for Reindeer {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        self.score
-            .partial_cmp(&other.score)
-            .map(|ord| ord.reverse())
+        self.score.partial_cmp(&other.score)
     }
 }
 
@@ -163,7 +232,7 @@ fn parse_input(input: &str) -> ((usize, usize), (usize, usize), Grid<Tile>) {
                     }
                     _ => panic!(),
                 },
-                best: [u64::MAX; 4],
+                ..Default::default()
             });
         }
         maze.finish_line();
