@@ -12,6 +12,8 @@ pub use vector_map::{self, set::VecSet, VecMap};
 pub mod grid;
 pub use grid::*;
 
+pub mod parse;
+
 pub fn run_parts<OneOut, TwoOut>(one: impl FnOnce(&str) -> OneOut, two: impl FnOnce(&str) -> TwoOut)
 where
     OneOut: Display,
