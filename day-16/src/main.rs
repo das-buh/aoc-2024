@@ -1,5 +1,8 @@
 use aoc::{Grid, Slab};
-use std::{cmp::Ordering, collections::BinaryHeap};
+use std::{
+    cmp::{Ordering, Reverse},
+    collections::BinaryHeap,
+};
 
 fn main() {
     aoc::run_parts(one, two);
@@ -7,18 +10,18 @@ fn main() {
 
 fn one(input: &str) -> u64 {
     let (start, end, mut maze) = parse_input(input);
-    let mut queue = BinaryHeap::from([Reindeer {
+    let mut queue = BinaryHeap::from([Reverse(Reindeer {
         pos: start,
         dir: (0, 1),
         score: 0,
         id: 0,
-    }]);
+    })]);
     maze[start].kind = Kind::Seen;
 
     loop {
         let Reindeer {
             pos, dir, score, ..
-        } = queue.pop().unwrap();
+        } = queue.pop().unwrap().0;
 
         if pos == end {
             break score;
@@ -28,12 +31,12 @@ fn one(input: &str) -> u64 {
             let pos = maze.translate(pos, dir).unwrap();
 
             if maze[pos].kind == Kind::Empty {
-                queue.push(Reindeer {
+                queue.push(Reverse(Reindeer {
                     pos,
                     dir,
                     score: score + cost,
                     id: 0,
-                });
+                }));
                 maze[pos].kind = Kind::Seen;
             }
         }
@@ -43,22 +46,22 @@ fn one(input: &str) -> u64 {
 fn two(input: &str) -> u64 {
     let (start, end, mut maze) = parse_input(input);
     let mut prevs = Slab::new();
-    let mut queue = BinaryHeap::from([Reindeer {
+    let mut queue = BinaryHeap::from([Reverse(Reindeer {
         pos: start,
         dir: (0, 1),
         score: 0,
         id: prevs.insert((start, (0, 1), usize::MAX)),
-    }]);
+    })]);
 
     let mut best = u64::MAX;
     let mut count = 0;
 
-    while let Some(Reindeer {
+    while let Some(Reverse(Reindeer {
         pos,
         dir,
         score,
         id,
-    }) = queue.pop()
+    })) = queue.pop()
     {
         if score > best {
             break;
@@ -85,12 +88,12 @@ fn two(input: &str) -> u64 {
             let score = score + cost;
 
             if maze[pos].kind != Kind::Wall && score <= maze[pos].best[dir_i] {
-                queue.push(Reindeer {
+                queue.push(Reverse(Reindeer {
                     pos,
                     dir,
                     score,
                     id: prevs.insert((pos, dir, id)),
-                });
+                }));
                 maze[pos].best[dir_i] = score;
             }
         }
@@ -111,7 +114,7 @@ enum Kind {
     Seen,
 }
 
-#[derive(Clone, Copy, Eq, Ord)]
+#[derive(Clone, Copy, Eq)]
 struct Reindeer {
     pos: (usize, usize),
     dir: (isize, isize),
@@ -127,9 +130,13 @@ impl PartialEq for Reindeer {
 
 impl PartialOrd for Reindeer {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        self.score
-            .partial_cmp(&other.score)
-            .map(|ord| ord.reverse())
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Reindeer {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.score.cmp(&other.score)
     }
 }
 
