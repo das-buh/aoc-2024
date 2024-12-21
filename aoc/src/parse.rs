@@ -15,8 +15,8 @@ macro_rules! seq {
         let (o, s) = $parser($s);
         seq!(@ parsers = { $( $rest )* }, in = s, out = { $( $out )* o, })
     }};
-    (@ parsers = {}, in = $s:ident, out = { $( $out:tt )* }) => {
-        ($( $out )* $s)
+    (@ parsers = {}, in = $s:ident, out = { $( $out:tt, )* }) => {
+        (($( $out ),*), $s)
     };
 }
 pub use seq;
@@ -74,7 +74,7 @@ pub fn uint(s: &str) -> (u64, &str) {
 }
 
 pub fn int(s: &str) -> (i64, &str) {
-    let (sign, num, s) = seq!(prefix_if(|s| s == '+' || s == '-'), uint)(s);
+    let ((sign, num), s) = seq!(prefix_if(|s| s == '+' || s == '-'), uint)(s);
     match sign {
         Some('+') | None => (num as i64, s),
         Some('-') => (-(num as i64), s),
@@ -101,13 +101,13 @@ pub struct SeparatedBy<'a, 'src, P> {
     finished: bool,
 }
 
-impl<'a, 'src, P> SeparatedBy<'a, 'src, P> {
+impl<'src, P> SeparatedBy<'_, 'src, P> {
     pub fn src(&self) -> &'src str {
         self.src
     }
 }
 
-impl<'a, 'src, T, P: FnMut(&'src str) -> (T, &'src str)> Iterator for SeparatedBy<'a, 'src, P> {
+impl<'src, T, P: FnMut(&'src str) -> (T, &'src str)> Iterator for SeparatedBy<'_, 'src, P> {
     type Item = (T, &'src str);
 
     fn next(&mut self) -> Option<Self::Item> {
