@@ -115,6 +115,11 @@ impl<'src, T, P: FnMut(&'src str) -> (T, &'src str)> Iterator for SeparatedBy<'_
             return None;
         }
 
+        if self.src.is_empty() {
+            self.finished = true;
+            return None;
+        }
+
         let (elem, s) = (self.elem)(self.src);
 
         match s.strip_prefix(self.separator) {
