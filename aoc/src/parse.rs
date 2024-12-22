@@ -68,6 +68,10 @@ pub fn newline(s: &str) -> (char, &str) {
     ('\n', rem)
 }
 
+pub fn word(s: &str) -> (&str, &str) {
+    prefix_while(|c| c.is_ascii_alphanumeric())(s)
+}
+
 pub fn uint(s: &str) -> (u64, &str) {
     let (num, s) = prefix_while(|c| c.is_ascii_digit())(s);
     (num.parse().unwrap(), s)
@@ -124,7 +128,10 @@ impl<'src, T, P: FnMut(&'src str) -> (T, &'src str)> Iterator for SeparatedBy<'_
 
         match s.strip_prefix(self.separator) {
             Some(s) => self.src = s,
-            None => self.finished = true,
+            None => {
+                self.src = s;
+                self.finished = true;
+            }
         }
 
         Some((elem, s))

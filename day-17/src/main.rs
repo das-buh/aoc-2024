@@ -1,15 +1,14 @@
 use aoc::FxHashSet;
-use std::fmt::Write;
 
 fn main() {
     aoc::run_parts(one, two);
 }
 
-fn one(input: &str) -> String {
+fn one(input: &str) -> Vec<u64> {
     let ((mut a, mut b, mut c), program) = parse_input(input);
     let ops = parse_program(&program);
 
-    let mut out = String::new();
+    let mut out = Vec::new();
 
     let mut i = 0;
     while i < ops.len() {
@@ -25,13 +24,7 @@ fn one(input: &str) -> String {
                 }
             }
             Op::Bxc => b ^= c,
-            Op::Out(o) => {
-                let o = resolve(st, o) & 0b111;
-                if !out.is_empty() {
-                    out.push(',');
-                }
-                out.write_fmt(format_args!("{o}")).unwrap();
-            }
+            Op::Out(o) => out.push(resolve(st, o) & 0b111),
             Op::Bdv(o) => b = a >> resolve(st, o),
             Op::Cdv(o) => c = a >> resolve(st, o),
         }
