@@ -1,11 +1,11 @@
-use aoc::{FxHashMap, FxHashSet};
+use aoc::FxHashSet;
 
 fn main() {
     aoc::run_parts(one, two);
 }
 
 fn one(input: &str) -> u64 {
-    let (towels, max_towel_len, designs) = parse_input(input);
+    let (towels, max_towel_len, designs, _) = parse_input(input);
 
     designs
         .into_iter()
@@ -14,12 +14,13 @@ fn one(input: &str) -> u64 {
 }
 
 fn two(input: &str) -> u64 {
-    let (towels, max_towel_len, designs) = parse_input(input);
+    let (towels, max_towel_len, designs, max_design_len) = parse_input(input);
+    let mut cache = vec![u64::MAX; max_design_len + 1];
 
     designs
         .into_iter()
         .map(|design| {
-            let mut cache = FxHashMap::default();
+            cache.fill(u64::MAX);
             count_possible(design, &towels, max_towel_len, &mut cache)
         })
         .sum()
@@ -45,14 +46,15 @@ fn count_possible(
     design: &[u8],
     towels: &FxHashSet<&[u8]>,
     max_towel_len: usize,
-    cache: &mut FxHashMap<usize, u64>,
+    cache: &mut Vec<u64>,
 ) -> u64 {
     if design.len() == 0 {
         return 1;
     }
 
-    if let Some(possible) = cache.get(&design.len()) {
-        return *possible;
+    let possible = cache[design.len()];
+    if possible != u64::MAX {
+        return possible;
     }
 
     let mut possible = 0;
@@ -65,11 +67,11 @@ fn count_possible(
         }
     }
 
-    cache.insert(design.len(), possible);
+    cache[design.len()] = possible;
     possible
 }
 
-fn parse_input(input: &str) -> (FxHashSet<&[u8]>, usize, Vec<&[u8]>) {
+fn parse_input(input: &str) -> (FxHashSet<&[u8]>, usize, Vec<&[u8]>, usize) {
     use aoc::parse::*;
 
     let mut iter = sep_by(", ", word)(input);
@@ -84,7 +86,9 @@ fn parse_input(input: &str) -> (FxHashSet<&[u8]>, usize, Vec<&[u8]>) {
 
     let designs = sep_by("\n", word)(input)
         .map(|(towel, _)| towel.as_bytes())
-        .collect();
+        .collect::<Vec<_>>();
 
-    (towels, max_towel_len, designs)
+    let max_design_len = designs.iter().map(|design| design.len()).max().unwrap();
+
+    (towels, max_towel_len, designs, max_design_len)
 }
