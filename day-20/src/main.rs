@@ -9,8 +9,6 @@ fn one(input: &str) -> u64 {
     count_cheats(end, 2, map)
 }
 
-// 121459 is too low
-// 216357 is too low
 fn two(input: &str) -> u64 {
     let (end, map) = parse_input(input);
     count_cheats(end, 20, map)
