@@ -27,7 +27,7 @@ fn two(input: &str) -> u64 {
 }
 
 fn is_possible(design: &[u8], towels: &FxHashSet<&[u8]>, max_towel_len: usize) -> bool {
-    if design.len() == 0 {
+    if design.is_empty() {
         return true;
     }
 
@@ -39,7 +39,7 @@ fn is_possible(design: &[u8], towels: &FxHashSet<&[u8]>, max_towel_len: usize) -
         }
     }
 
-    return false;
+    false
 }
 
 fn count_possible(
@@ -48,7 +48,7 @@ fn count_possible(
     max_towel_len: usize,
     cache: &mut Vec<u64>,
 ) -> u64 {
-    if design.len() == 0 {
+    if design.is_empty() {
         return 1;
     }
 
