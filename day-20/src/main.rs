@@ -68,7 +68,7 @@ fn count_cheats(end: (usize, usize), cheat_dur: u64, mut map: Grid<Tile>) -> u64
             }
         }
 
-        queue.extend(queue_new.drain(..));
+        queue.append(&mut queue_new);
         dist += 1;
     }
 

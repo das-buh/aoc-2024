@@ -34,7 +34,7 @@ fn one(input: &str) -> u64 {
             }
         }
 
-        queue.extend(queue_new.drain(..));
+        queue.append(&mut queue_new);
         steps += 1;
     }
 }
