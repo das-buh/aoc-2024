@@ -34,7 +34,7 @@ fn one(input: &str) -> u64 {
             }
         }
 
-        queue.extend_from_slice(&queue_new);
+        queue.extend(queue_new.drain(..));
         steps += 1;
     }
 }
