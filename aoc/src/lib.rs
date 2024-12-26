@@ -104,7 +104,7 @@ impl Display for DisplayAnswer<()> {
     }
 }
 
-impl_display! { u64, i64, &str, String }
+impl_display! { u8, u16, u32, u64, i8, i16, i32, i64, &str, String }
 
 impl_display_tuple! { T1, T2, T3, T4, T5, T6, T7 }
 
