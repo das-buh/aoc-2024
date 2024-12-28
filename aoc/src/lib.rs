@@ -7,6 +7,7 @@ use std::{
 pub use arrayvec::{self, ArrayString, ArrayVec};
 pub use bitvec::{self, array::BitArray, slice::BitSlice, vec::BitVec};
 pub use fxhash::{self, FxHashMap, FxHashSet};
+pub use petgraph;
 pub use rayon::{self, prelude::*};
 pub use regex::{self, Regex};
 pub use slab::{self, Slab};
